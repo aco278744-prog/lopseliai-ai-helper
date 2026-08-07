@@ -1,10 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useOnboardingRestore } from "@/hooks/useOnboardingRestore";
-import { generateCourse } from "@/lib/course.functions";
 
 export const Route = createFileRoute("/auth/callback")({
   ssr: false,
@@ -22,36 +20,25 @@ export const Route = createFileRoute("/auth/callback")({
 
 function AuthCallbackPage() {
   const navigate = useNavigate();
-  const { status, data, clear } = useOnboardingRestore();
-  const startGeneration = useServerFn(generateCourse);
-  const started = useRef(false);
+  const { isRestoring, restoreError, generatedCourseId, restoredQuizData } = useOnboardingRestore();
 
   useEffect(() => {
-    if (status === "waiting" || started.current) return;
-
-    if (status === "restored" && data) {
-      started.current = true;
-      clear();
-      // Fire and forget — the loading page tracks the row via Realtime + polling.
-      void startGeneration({ data: { onboarding: data } }).catch(() => undefined);
+    if (restoredQuizData && isRestoring) {
+      // Generation started — the loading page tracks the row via Realtime + polling.
       void navigate({ to: "/loading" });
       return;
     }
-
-    if (status === "missing" || status === "invalid") {
-      started.current = true;
-      void navigate({ to: "/dashboard" });
+    if (!isRestoring && !restoreError) {
+      void navigate({ to: generatedCourseId ? "/loading" : "/dashboard" });
     }
-  }, [status, data, clear, navigate, startGeneration]);
+  }, [isRestoring, restoreError, generatedCourseId, restoredQuizData, navigate]);
 
-  if (status === "timeout") {
+  if (restoreError) {
     return (
       <div className="flex min-h-screen items-center justify-center px-5">
         <div className="surface-card w-full max-w-md p-8 text-center">
           <h1 className="text-2xl font-semibold">Prisijungti nepavyko</h1>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Nuoroda galėjo pasenti arba jau buvo panaudota. Paprašykite naujos prisijungimo nuorodos.
-          </p>
+          <p className="mt-3 text-sm text-muted-foreground">{restoreError}</p>
           <Button asChild className="mt-6 w-full" size="lg">
             <Link to="/auth">Gauti naują nuorodą</Link>
           </Button>
@@ -67,3 +54,4 @@ function AuthCallbackPage() {
     </div>
   );
 }
+
