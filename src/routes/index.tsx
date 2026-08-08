@@ -65,11 +65,11 @@ function LandingPage() {
               Sukurta Lietuvos darželiams
             </span>
             <h1 className="mt-5 text-4xl leading-[1.08] font-semibold sm:text-5xl lg:text-6xl">
-              Dirbtinis intelektas, pritaikytas jūsų darželio kasdienybei
+              Dirbtinis intelektas, pritaikytas jūsų kasdienybei.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Atsakykite į 7 klausimus ir per kelias sekundes gausite personalų kursą su paruoštomis
-              užklausomis, šablonais ir žingsnis po žingsnio vadovais — būtent jūsų vaidmeniui.
+              Atsakykite į 7 klausimus ir per kelias sekundes gausite personalizuotą kursą su paruoštomis
+              užklausomis, šablonais ir nuosekliais vadovais — būtent jūsų pareigoms.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-12 px-6 text-base">
@@ -93,7 +93,7 @@ function LandingPage() {
               height={960}
               className="w-full rounded-3xl object-cover shadow-lift"
             />
-            <div className="surface-card absolute -bottom-6 left-4 hidden max-w-[15rem] p-4 md:block animate-float-soft">
+            <div className="hidden">
               <p className="text-sm font-medium">„Savaitės planą parengiu per 12 minučių.“</p>
               <p className="mt-1 text-xs text-muted-foreground">Pavaduotoja ugdymui, Kaunas</p>
             </div>
