@@ -5,7 +5,9 @@ export const ONBOARDING_STORAGE_KEY = "lopseliai_onboarding_v1";
 export const roleValues = [
   "director",
   "deputy_education",
-  "accountant_facility",
+  "deputy_facility",
+  "accountant",
+  "facility_manager",
   "teacher",
   "specialist",
 ] as const;
@@ -58,9 +60,19 @@ export const roleOptions: Option<(typeof roleValues)[number]>[] = [
     description: "Ugdymo proceso priežiūra",
   },
   {
-    value: "accountant_facility",
-    label: "Buhalterė / ūkvedė",
-    description: "Finansai, viešieji pirkimai, ūkis",
+    value: "deputy_facility",
+    label: "Direktoriaus pavaduotoja ūkio reikalams",
+    description: "Ūkis, viešieji pirkimai, sauga",
+  },
+  {
+    value: "accountant",
+    label: "Buhalterė",
+    description: "Finansai, ataskaitos, buhalterija",
+  },
+  {
+    value: "facility_manager",
+    label: "Ūkvedė",
+    description: "Patalpos, sauga, aprūpinimas",
   },
   { value: "teacher", label: "Auklėtoja / mokytoja", description: "Darbas su grupe kasdien" },
   {

@@ -27,7 +27,9 @@ const lt: Copy = {
   roles: {
     director: "Direktorė",
     deputy_education: "Pavaduotoja ugdymui",
-    accountant_facility: "Buhalterė / ūkvedė",
+    deputy_facility: "Pavaduotoja ūkio reikalams",
+    accountant: "Buhalterė",
+    facility_manager: "Ūkvedė",
     teacher: "Auklėtoja",
     specialist: "Specialistė",
   },
@@ -189,7 +191,9 @@ const ru: Copy = {
   roles: {
     director: "Директор",
     deputy_education: "Заместитель по воспитанию",
-    accountant_facility: "Бухгалтер / завхоз",
+    deputy_facility: "Заместитель по хозяйственной части",
+    accountant: "Бухгалтер",
+    facility_manager: "Завхоз",
     teacher: "Воспитатель",
     specialist: "Специалист",
   },
