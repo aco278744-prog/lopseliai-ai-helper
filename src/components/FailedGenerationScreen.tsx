@@ -1,37 +1,77 @@
-import { AlertTriangle, RotateCcw } from "lucide-react";
+import { AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-type Props = {
-  message?: string | null;
+interface FailedGenerationScreenProps {
+  errorMessage?: string;
   onRetry: () => void;
   isRetrying?: boolean;
-};
+}
 
-export function FailedGenerationScreen({ message, onRetry, isRetrying = false }: Props) {
+export function FailedGenerationScreen({
+  errorMessage,
+  onRetry,
+  isRetrying = false,
+}: FailedGenerationScreenProps) {
   return (
-    <div className="flex min-h-[70vh] items-center justify-center px-4 py-16">
-      <div className="surface-card w-full max-w-md p-8 text-center">
-        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-accent-soft">
-          <AlertTriangle className="size-7 text-accent-foreground" aria-hidden="true" />
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 to-red-50 px-4">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
+        <div className="mb-6 flex justify-center">
+          <div className="rounded-full bg-red-100 p-3">
+            <AlertCircle className="h-8 w-8 text-red-600" />
+          </div>
         </div>
-        <h1 className="mt-6 text-2xl font-semibold">Kurso sugeneruoti nepavyko</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          Įvyko techninė klaida ruošiant jūsų personalų kursą. Jūsų atsakymai išsaugoti — pabandykite
-          dar kartą, tai užtruks vos kelias sekundes.
+
+        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900">
+          Klaida generuojant kursą
+        </h1>
+
+        <p className="mb-6 text-center text-gray-600">
+          Deja, nepavyko sugeneruoti jūsų personalaus kurso. Prašome bandyti dar
+          kartą.
         </p>
-        {message ? (
-          <p className="mt-4 rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
-            Klaidos kodas: {message}
-          </p>
-        ) : null}
-        <Button className="mt-6 w-full" size="lg" onClick={onRetry} disabled={isRetrying}>
-          <RotateCcw className={isRetrying ? "size-4 animate-spin" : "size-4"} aria-hidden="true" />
-          {isRetrying ? "Bandoma iš naujo..." : "Bandyti dar kartą"}
-        </Button>
-        <p className="mt-4 text-xs text-muted-foreground">
-          Jei klaida kartojasi, parašykite mums — padėsime rankiniu būdu.
+
+        {errorMessage && (
+          <div className="mb-6 rounded-md bg-red-50 p-4 border border-red-200">
+            <p className="text-sm text-red-800">
+              <strong>Klaida:</strong> {errorMessage}
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <Button
+            onClick={onRetry}
+            disabled={isRetrying}
+            className="w-full bg-green-600 hover:bg-green-700"
+          >
+            {isRetrying ? (
+              <>
+                <RotateCcw className="mr-2 h-4 w-4 animate-spin" />
+                Bandau dar kartą...
+              </>
+            ) : (
+              <>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Bandyti dar kartą
+              </>
+            )}
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => window.location.href = "/"}
+            className="w-full"
+          >
+            Grįžti į pradžią
+          </Button>
+        </div>
+
+        <p className="mt-6 text-center text-sm text-gray-500">
+          Jei klaida tęsis, susisiekite su mūsų pagalbos komanda.
         </p>
       </div>
     </div>
   );
 }
+
+export default FailedGenerationScreen;
