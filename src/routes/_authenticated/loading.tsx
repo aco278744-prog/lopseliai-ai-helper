@@ -33,7 +33,7 @@ function LoadingPage() {
   const [courseId, setCourseId] = useState<string | null>(null);
   const [stage, setStage] = useState(0);
   const [retrying, setRetrying] = useState(false);
-  const { status, errorMessage } = useGenerationStatus(courseId);
+  const { status, error: errorMessage } = useGenerationStatus(courseId);
   const retry = useServerFn(retryCourse);
 
   useEffect(() => {
@@ -65,7 +65,7 @@ function LoadingPage() {
   }, []);
 
   useEffect(() => {
-    if (status === "ready") void navigate({ to: "/dashboard" });
+    if (status === "completed") void navigate({ to: "/dashboard" });
   }, [status, navigate]);
 
   const handleRetry = async () => {
