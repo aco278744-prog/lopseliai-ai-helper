@@ -79,7 +79,7 @@ function LoadingPage() {
   };
 
   if (status === "failed") {
-    return <FailedGenerationScreen message={errorMessage} onRetry={() => void handleRetry()} isRetrying={retrying} />;
+    return <FailedGenerationScreen errorMessage={errorMessage} onRetry={() => void handleRetry()} isRetrying={retrying} />;
   }
 
   const progress = Math.round(((stage + 1) / stages.length) * 100);
