@@ -140,7 +140,7 @@ function OnboardingPage() {
               </p>
               <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{meta.title}</h1>
 
-              <div className="mt-6 space-y-3">
+              <div className="mt-6 space-y-3 pb-[80px]">
                 {step === 0 &&
                   renderSingle(roleOptions, draft.role, (value) => pickSingle("role", value))}
                 {step === 1 &&
