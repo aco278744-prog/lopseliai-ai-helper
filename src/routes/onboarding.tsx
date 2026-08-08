@@ -140,7 +140,7 @@ function OnboardingPage() {
               </p>
               <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{meta.title}</h1>
 
-              <div className="mt-6 space-y-3">
+              <div className="mt-6 space-y-3 pb-[80px]">
                 {step === 0 &&
                   renderSingle(roleOptions, draft.role, (value) => pickSingle("role", value))}
                 {step === 1 &&
@@ -179,13 +179,19 @@ function OnboardingPage() {
                   <ArrowLeft className="size-4" aria-hidden="true" />
                   Atgal
                 </Button>
-                {step === 1 ? (
-                  <Button onClick={goNext} disabled={(draft.age_groups ?? []).length === 0}>
+              </div>
+              {step === 1 ? (
+                <div className="fixed bottom-0 left-0 right-0 z-10 border-t border-border bg-background p-4">
+                  <Button
+                    onClick={goNext}
+                    disabled={(draft.age_groups ?? []).length === 0}
+                    className="w-full"
+                  >
                     Toliau
                     <ArrowRight className="size-4" aria-hidden="true" />
                   </Button>
-                ) : null}
-              </div>
+                </div>
+              ) : null}
             </>
           ) : sent ? (
             <div className="py-6 text-center">
