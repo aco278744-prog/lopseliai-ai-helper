@@ -2,7 +2,7 @@ import { AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface FailedGenerationScreenProps {
-  errorMessage?: string;
+  errorMessage?: string | null;
   onRetry: () => void;
   isRetrying?: boolean;
 }
