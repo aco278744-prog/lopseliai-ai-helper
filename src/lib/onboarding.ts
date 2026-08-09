@@ -148,7 +148,7 @@ export const timeBudgetOptions: Option<(typeof timeBudgetValues)[number]>[] = [
 
 export const languageStyleOptions: Option<(typeof languageStyleValues)[number]>[] = [
   { value: "lt", label: "Lietuvių kalba", description: "Kurso turinys lietuviškai" },
-  { value: "ru", label: "Rusų kalba", description: "Содержание курса на русском" },
+  
 ];
 
 export function labelFor<T extends string>(options: Option<T>[], value: T): string {
