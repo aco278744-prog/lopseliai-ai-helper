@@ -30,12 +30,12 @@ export const Route = createFileRoute("/onboarding")({
       {
         name: "description",
         content:
-          "7 klausimai apie jūsų vaidmenį darželyje, amžiaus grupes ir darbo iššūkius — pagal juos sukursime personalų DI kursą.",
+          "8 klausimai apie jūsų vaidmenį darželyje, amžiaus grupes ir darbo iššūkius — pagal juos sukursime personalų DI kursą.",
       },
       { property: "og:title", content: "Apklausa — sukurkite personalų DI kursą" },
       {
         property: "og:description",
-        content: "Atsakykite į 7 klausimus ir gaukite kursą, pritaikytą jūsų darbui darželyje.",
+        content: "Atsakykite į 8 klausimus ir gaukite kursą, pritaikytą jūsų darbui darželyje.",
       },
     ],
   }),

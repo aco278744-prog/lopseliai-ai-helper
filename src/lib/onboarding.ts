@@ -17,7 +17,7 @@ export const ageGroupValues = ["nursery", "preschool", "prekindergarten"] as con
 export const mainPainValues = [
   "parent_communications",
   "education_plans",
-  "procurement_safety",
+  "events_celebrations",
   "reports_municipality",
   "internal_orders",
 ] as const;
@@ -100,9 +100,9 @@ export const mainPainOptions: Option<(typeof mainPainValues)[number]>[] = [
     description: "Savaitės planai, veiklų idėjos, vertinimai",
   },
   {
-    value: "procurement_safety",
-    label: "Pirkimai ir sauga",
-    description: "Specifikacijos, instrukcijos, rizikų vertinimas",
+    value: "events_celebrations",
+    label: "Renginiai ir šventės",
+    description: "Scenarijai, pasiruošimas, madingos idėjos",
   },
   {
     value: "reports_municipality",
@@ -148,7 +148,7 @@ export const timeBudgetOptions: Option<(typeof timeBudgetValues)[number]>[] = [
 
 export const languageStyleOptions: Option<(typeof languageStyleValues)[number]>[] = [
   { value: "lt", label: "Lietuvių kalba", description: "Kurso turinys lietuviškai" },
-  { value: "ru", label: "Rusų kalba", description: "Содержание курса на русском" },
+  
 ];
 
 export function labelFor<T extends string>(options: Option<T>[], value: T): string {

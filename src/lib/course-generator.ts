@@ -36,7 +36,7 @@ const lt: Copy = {
   pains: {
     parent_communications: "Bendravimas su tėvais",
     education_plans: "Ugdymo planai",
-    procurement_safety: "Pirkimai ir sauga",
+    events_celebrations: "Renginiai ir šventės",
     reports_municipality: "Ataskaitos savivaldybei",
     internal_orders: "Vidaus tvarkos ir įsakymai",
   },
@@ -200,7 +200,7 @@ const ru: Copy = {
   pains: {
     parent_communications: "Общение с родителями",
     education_plans: "Планы образования",
-    procurement_safety: "Закупки и безопасность",
+    events_celebrations: "Renginiai ir šventės",
     reports_municipality: "Отчёты самоуправлению",
     internal_orders: "Внутренние приказы",
   },
