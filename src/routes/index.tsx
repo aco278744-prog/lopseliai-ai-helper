@@ -10,7 +10,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Per 3 minutes atsakykite į 8 klausimus ir gaukite personalų dirbtinio intelekto kursą su paruoštomis užklausomis lopšelio-darželio darbui.",
+          "Per 3 minutes atsakykite į 7 klausimus ir gaukite personalų dirbtinio intelekto kursą su paruoštomis užklausomis lopšelio-darželio darbui.",
       },
       { property: "og:title", content: "Lopšeliai — personalus DI kursas darželio komandai" },
       {
@@ -42,7 +42,7 @@ const benefits = [
 ];
 
 const steps = [
-  { number: "01", title: "Atsakykite į 8 klausimus", text: "Vaidmuo, grupės, skaudžiausia sritis ir laisvas laikas." },
+  { number: "01", title: "Atsakykite į 7 klausimus", text: "Vaidmuo, grupės, skaudžiausia sritis ir laisvas laikas." },
   { number: "02", title: "Gaukite prisijungimo nuorodą", text: "Be slaptažodžių — tiesiog patvirtinkite el. paštą." },
   { number: "03", title: "Mokykitės savo tempu", text: "Moduliai, pamokos ir paruoštos užklausos vienoje vietoje." },
 ];
@@ -68,7 +68,7 @@ function LandingPage() {
               Dirbtinis intelektas pritaikytas jūsų kasdienybei.
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Atsakykite į 8 klausimus ir per kelias sekundes gausite personalizuotą kursą su paruoštomis
+              Atsakykite į 7 klausimus ir per kelias sekundes gausite personalizuotą kursą su paruoštomis
               užklausomis, šablonais ir nuosekliais vadovais — būtent jūsų pareigoms.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">

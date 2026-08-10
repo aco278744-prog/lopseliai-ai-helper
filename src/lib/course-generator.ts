@@ -29,7 +29,6 @@ const lt: Copy = {
     deputy_education: "Pavaduotoja ugdymui",
     deputy_facility: "Pavaduotoja ūkio reikalams",
     accountant: "Buhalterė",
-    facility_manager: "Ūkvedė",
     teacher: "Auklėtoja",
     specialist: "Specialistė",
   },
@@ -184,7 +183,7 @@ const lt: Copy = {
   ],
 };
 
-const ru: Copy = {
+export const ru: Copy = {
   courseTitle: (pain) => `Искусственный интеллект в детском саду: ${pain.toLowerCase()}`,
   subtitle: (role, minutes) =>
     `Персональный курс для вашей роли (${role.toLowerCase()}) в темпе ${minutes}.`,
@@ -193,7 +192,6 @@ const ru: Copy = {
     deputy_education: "Заместитель по воспитанию",
     deputy_facility: "Заместитель по хозяйственной части",
     accountant: "Бухгалтер",
-    facility_manager: "Завхоз",
     teacher: "Воспитатель",
     specialist: "Специалист",
   },
@@ -340,7 +338,7 @@ const ru: Copy = {
 };
 
 export function buildMockCourse(data: OnboardingData): CourseContent {
-  const copy = data.language_style === "ru" ? ru : lt;
+  const copy = lt;
   const role = copy.roles[data.role];
   const pain = copy.pains[data.main_pain];
   const minutes = copy.time[data.time_budget];
@@ -358,7 +356,12 @@ export function buildMockCourse(data: OnboardingData): CourseContent {
   return {
     title: copy.courseTitle(pain),
     subtitle: copy.subtitle(role, minutes),
-    language: data.language_style,
+    language: "lt",
     modules: copy.modules(ctx),
   };
+}
+
+/** Cache key shared across users: `${role}_${main_pain}_${ai_experience}`. */
+export function buildCourseKey(data: OnboardingData): string {
+  return `${data.role}_${data.main_pain}_${data.ai_experience}`;
 }

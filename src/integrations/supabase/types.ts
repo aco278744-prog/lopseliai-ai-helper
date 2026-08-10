@@ -14,9 +14,31 @@ export type Database = {
   }
   public: {
     Tables: {
+      course_templates: {
+        Row: {
+          content: Json
+          course_key: string
+          created_at: string
+          title: string
+        }
+        Insert: {
+          content: Json
+          course_key: string
+          created_at?: string
+          title: string
+        }
+        Update: {
+          content?: Json
+          course_key?: string
+          created_at?: string
+          title?: string
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           content: Json | null
+          course_key: string | null
           created_at: string
           error_message: string | null
           id: string
@@ -28,6 +50,7 @@ export type Database = {
         }
         Insert: {
           content?: Json | null
+          course_key?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
@@ -39,6 +62,7 @@ export type Database = {
         }
         Update: {
           content?: Json | null
+          course_key?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
