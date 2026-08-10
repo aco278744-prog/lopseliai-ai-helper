@@ -4,25 +4,67 @@ import { onboardingSchema } from "@/lib/onboarding";
 import { buildMockCourse, buildCourseKey } from "@/lib/course-generator";
 import { courseContentSchema } from "@/lib/course-types";
 
+export const savePendingOnboarding = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => {
+    const candidate = input as { email?: unknown; onboarding?: unknown };
+    const email = typeof candidate.email === "string" ? candidate.email.trim().toLowerCase() : "";
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 255) {
+      throw new Error("Neteisingas el. pašto adresas");
+    }
+    return { email, onboarding: onboardingSchema.parse(candidate.onboarding) };
+  })
+  .handler(async ({ data }) => {
+    const handoffToken = crypto.randomUUID();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("pending_onboarding").insert({
+      email: data.email,
+      handoff_token: handoffToken,
+      onboarding: data.onboarding,
+    });
+    if (error) {
+      console.error("[savePendingOnboarding] insert failed", error);
+      throw new Error("Nepavyko išsaugoti apklausos atsakymų");
+    }
+    return { handoffToken };
+  });
+
 /**
  * Creates a course row. Uses the shared `course_templates` cache keyed by
  * `${role}_${main_pain}_${ai_experience}` — cache hits are instant.
  */
 export const generateCourse = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    onboardingSchema.parse((input as { onboarding: unknown }).onboarding),
-  )
+  .inputValidator((input: unknown) => {
+    const candidate = input as { onboarding?: unknown; pendingOnboardingId?: unknown };
+    const pendingOnboardingId =
+      typeof candidate.pendingOnboardingId === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        candidate.pendingOnboardingId,
+      )
+        ? candidate.pendingOnboardingId
+        : null;
+    return { onboarding: onboardingSchema.parse(candidate.onboarding), pendingOnboardingId };
+  })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const courseKey = buildCourseKey(data);
+    const courseKey = buildCourseKey(data.onboarding);
+
+    if (data.pendingOnboardingId) {
+      const { data: existing } = await supabase
+        .from("courses")
+        .select("id, status")
+        .eq("pending_onboarding_id", data.pendingOnboardingId)
+        .maybeSingle();
+      if (existing) return { courseId: existing.id, status: existing.status as "ready" | "failed" };
+    }
 
     const { data: created, error: insertError } = await supabase
       .from("courses")
       .insert({
         user_id: userId,
         status: "generating",
-        onboarding: data,
+        onboarding: data.onboarding,
+        pending_onboarding_id: data.pendingOnboardingId,
         course_key: courseKey,
         title: "Personalus kursas",
       })
@@ -44,7 +86,7 @@ export const generateCourse = createServerFn({ method: "POST" })
         .maybeSingle();
 
       const parsedCache = cached ? courseContentSchema.safeParse(cached.content) : null;
-      const content = parsedCache?.success ? parsedCache.data : buildMockCourse(data);
+      const content = parsedCache?.success ? parsedCache.data : buildMockCourse(data.onboarding);
 
       if (!parsedCache?.success) {
         const { error: cacheError } = await supabase

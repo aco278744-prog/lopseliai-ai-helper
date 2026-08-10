@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { safeStorage } from "@/lib/storage";
+import { useServerFn } from "@tanstack/react-start";
+import { savePendingOnboarding } from "@/lib/course.functions";
 import {
   ONBOARDING_STORAGE_KEY,
   onboardingSchema,
@@ -61,6 +63,7 @@ function OnboardingPage() {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const persistPendingOnboarding = useServerFn(savePendingOnboarding);
 
   const isEmailStep = step === stepsMeta.length;
   const progress = Math.round(((step + 1) / TOTAL_STEPS) * 100);
@@ -101,9 +104,24 @@ function OnboardingPage() {
     setSending(true);
     safeStorage.setJSON(ONBOARDING_STORAGE_KEY, parsed.data);
 
+    let handoffToken: string;
+    try {
+      const saved = await persistPendingOnboarding({
+        data: { email: trimmed, onboarding: parsed.data },
+      });
+      handoffToken = saved.handoffToken;
+    } catch (error) {
+      console.error("[onboarding] pending answers save failed", error);
+      setSending(false);
+      toast.error("Nepavyko išsaugoti atsakymų. Bandykite dar kartą.");
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmed,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?handoff=${encodeURIComponent(handoffToken)}`,
+      },
     });
 
     setSending(false);
