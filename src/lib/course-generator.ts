@@ -360,3 +360,8 @@ export function buildMockCourse(data: OnboardingData): CourseContent {
     modules: copy.modules(ctx),
   };
 }
+
+/** Cache key shared across users: `${role}_${main_pain}_${ai_experience}`. */
+export function buildCourseKey(data: OnboardingData): string {
+  return `${data.role}_${data.main_pain}_${data.ai_experience}`;
+}
