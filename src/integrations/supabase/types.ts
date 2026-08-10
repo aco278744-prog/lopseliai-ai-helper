@@ -43,6 +43,7 @@ export type Database = {
           error_message: string | null
           id: string
           onboarding: Json
+          pending_onboarding_id: string | null
           status: string
           title: string
           updated_at: string
@@ -55,6 +56,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           onboarding?: Json
+          pending_onboarding_id?: string | null
           status?: string
           title?: string
           updated_at?: string
@@ -67,12 +69,21 @@ export type Database = {
           error_message?: string | null
           id?: string
           onboarding?: Json
+          pending_onboarding_id?: string | null
           status?: string
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "courses_pending_onboarding_id_fkey"
+            columns: ["pending_onboarding_id"]
+            isOneToOne: false
+            referencedRelation: "pending_onboarding"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lesson_progress: {
         Row: {
