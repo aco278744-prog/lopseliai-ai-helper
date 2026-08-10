@@ -64,6 +64,22 @@ function DashboardPage() {
 
   const course = courseQuery.data ?? null;
 
+  const pendingQuery = useQuery({
+    queryKey: ["pending-onboarding"],
+    enabled: courseQuery.isSuccess && !course,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pending_onboarding")
+        .select("id")
+        .is("consumed_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
+
   const progressQuery = useQuery({
     queryKey: ["progress", course?.id],
     enabled: Boolean(course?.id),
@@ -127,7 +143,7 @@ function DashboardPage() {
     void navigate({ to: "/" });
   };
 
-  if (courseQuery.isLoading) {
+  if (courseQuery.isLoading || pendingQuery.isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="size-8 animate-spin text-primary" aria-hidden="true" />
@@ -143,9 +159,19 @@ function DashboardPage() {
           <p className="mt-3 text-sm text-muted-foreground">
             Atsakykite į 7 klausimus ir sukursime personalų kursą jūsų darbui.
           </p>
-          <Button asChild className="mt-6 w-full" size="lg">
-            <Link to="/onboarding">Sukurti individualų kursą</Link>
-          </Button>
+          {pendingQuery.data ? (
+            <Button
+              className="mt-6 w-full"
+              size="lg"
+              onClick={() => void navigate({ to: "/auth/callback" })}
+            >
+              Tęsti kurso kūrimą
+            </Button>
+          ) : (
+            <Button asChild className="mt-6 w-full" size="lg">
+              <Link to="/onboarding">Sukurti individualų kursą</Link>
+            </Button>
+          )}
         </div>
       </div>
     );

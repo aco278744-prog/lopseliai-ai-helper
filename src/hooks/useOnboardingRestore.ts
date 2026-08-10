@@ -68,61 +68,68 @@ export function useOnboardingRestore(): UseOnboardingRestoreReturn {
     const restore = async () => {
       try {
         const savedQuizDataStr = safeStorage.get(STORAGE_KEY_QUIZ_DATA);
-        const pendingGeneration = safeStorage.get(STORAGE_KEY_PENDING) ?? savedQuizDataStr;
 
         // Verify a real user exists (Magic Link must be completed first).
         const { data: userData, error: userError } = await supabase.auth.getUser();
         const user = userData?.user ?? null;
         if (userError) console.error("[onboarding-restore] auth.getUser failed", userError);
 
-        if (!pendingGeneration) {
-          // Nothing to generate — send returning users to their latest course.
-          if (user) {
-            const { data: latestCourse } = await supabase
-              .from("courses")
-              .select("id")
-              .eq("user_id", user.id)
-              .eq("status", "ready")
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .maybeSingle();
-
-            if (latestCourse) {
-              safeStorage.set(STORAGE_KEY_GENERATED_COURSE_ID, latestCourse.id);
-              void navigate({ to: "/dashboard" });
-              return;
-            }
-          }
-          if (isMountedRef.current) setIsRestoring(false);
-          return;
-        }
-
         if (!user) {
-          safeStorage.remove(STORAGE_KEY_PENDING);
           setError("Prisijungimo nuoroda gali būti pasibaigusi. Bandykite dar kartą.");
           return;
         }
 
-        if (!savedQuizDataStr) {
-          safeStorage.remove(STORAGE_KEY_PENDING);
-          setError("Onboarding duomenys dingę. Prašome pradėti iš naujo.");
-          return;
+        const handoffToken = new URLSearchParams(window.location.search).get("handoff");
+        let pendingQuery = supabase
+          .from("pending_onboarding")
+          .select("id, onboarding")
+          .is("consumed_at", null)
+          .order("created_at", { ascending: false })
+          .limit(1);
+        if (handoffToken) pendingQuery = pendingQuery.eq("handoff_token", handoffToken);
+        const { data: pending, error: pendingError } = await pendingQuery.maybeSingle();
+        if (pendingError) console.error("[onboarding-restore] pending lookup failed", pendingError);
+
+        let quizData: OnboardingQuizData | null = null;
+        let pendingOnboardingId: string | null = null;
+        if (pending) {
+          const parsedPending = QuizDataSchema.safeParse(pending.onboarding);
+          if (parsedPending.success) {
+            quizData = parsedPending.data;
+            pendingOnboardingId = pending.id;
+          } else {
+            console.error("[onboarding-restore] invalid server-side answers", parsedPending.error);
+          }
+        }
+        if (!quizData && savedQuizDataStr) {
+          const parsedLocal = QuizDataSchema.safeParse(JSON.parse(savedQuizDataStr));
+          if (parsedLocal.success) quizData = parsedLocal.data;
         }
 
-        let quizData: OnboardingQuizData;
-        try {
-          quizData = QuizDataSchema.parse(JSON.parse(savedQuizDataStr));
-        } catch {
-          safeStorage.remove(STORAGE_KEY_QUIZ_DATA);
-          safeStorage.remove(STORAGE_KEY_PENDING);
-          setError("Onboarding duomenys pažeisti. Prašome pradėti iš naujo.");
+        if (!quizData) {
+          const { data: latestCourse } = await supabase
+            .from("courses")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("status", "ready")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (latestCourse) {
+            safeStorage.set(STORAGE_KEY_GENERATED_COURSE_ID, latestCourse.id);
+            void navigate({ to: "/dashboard" });
+            return;
+          }
+          setError("Išsaugotų apklausos atsakymų neradome. Prašome pradėti iš naujo.");
           return;
         }
 
         if (isMountedRef.current) setRestoredQuizData(quizData);
 
         // Server function persists the course row and runs generation (RLS-scoped).
-        const result = await startGeneration({ data: { onboarding: quizData } }).catch(
+        const result = await startGeneration({
+          data: { onboarding: quizData, pendingOnboardingId },
+        }).catch(
           (generationError: unknown) => {
             console.error("[onboarding-restore] generateCourse failed", generationError);
             return null;
@@ -142,6 +149,13 @@ export function useOnboardingRestore(): UseOnboardingRestoreReturn {
         safeStorage.set(STORAGE_KEY_GENERATED_COURSE_ID, result.courseId);
         safeStorage.remove(STORAGE_KEY_PENDING);
         safeStorage.remove(STORAGE_KEY_QUIZ_DATA);
+        if (pendingOnboardingId) {
+          const { error: consumeError } = await supabase
+            .from("pending_onboarding")
+            .update({ consumed_at: new Date().toISOString() })
+            .eq("id", pendingOnboardingId);
+          if (consumeError) console.error("[onboarding-restore] consume failed", consumeError);
+        }
 
         setSuccess(result.courseId);
       } catch (err) {
