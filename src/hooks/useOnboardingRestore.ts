@@ -70,15 +70,18 @@ export function useOnboardingRestore(): UseOnboardingRestoreReturn {
         const savedQuizDataStr = safeStorage.get(STORAGE_KEY_QUIZ_DATA);
         const pendingGeneration = safeStorage.get(STORAGE_KEY_PENDING) ?? savedQuizDataStr;
 
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        // Verify a real user exists (Magic Link must be completed first).
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        const user = userData?.user ?? null;
+        if (userError) console.error("[onboarding-restore] auth.getUser failed", userError);
 
         if (!pendingGeneration) {
           // Nothing to generate — send returning users to their latest course.
-          if (sessionData.session?.user) {
+          if (user) {
             const { data: latestCourse } = await supabase
               .from("courses")
               .select("id")
-              .eq("user_id", sessionData.session.user.id)
+              .eq("user_id", user.id)
               .eq("status", "ready")
               .order("created_at", { ascending: false })
               .limit(1)
@@ -94,7 +97,7 @@ export function useOnboardingRestore(): UseOnboardingRestoreReturn {
           return;
         }
 
-        if (sessionError || !sessionData.session) {
+        if (!user) {
           safeStorage.remove(STORAGE_KEY_PENDING);
           setError("Prisijungimo nuoroda gali būti pasibaigusi. Bandykite dar kartą.");
           return;
@@ -120,11 +123,19 @@ export function useOnboardingRestore(): UseOnboardingRestoreReturn {
 
         // Server function persists the course row and runs generation (RLS-scoped).
         const result = await startGeneration({ data: { onboarding: quizData } }).catch(
-          () => null,
+          (generationError: unknown) => {
+            console.error("[onboarding-restore] generateCourse failed", generationError);
+            return null;
+          },
         );
 
         if (!result?.courseId) {
           setError("Nepavyko pradėti kurso generavimo");
+          return;
+        }
+
+        if (result.status === "failed") {
+          setError("Kurso sukurti nepavyko. Bandykite dar kartą.");
           return;
         }
 
@@ -134,6 +145,7 @@ export function useOnboardingRestore(): UseOnboardingRestoreReturn {
 
         setSuccess(result.courseId);
       } catch (err) {
+        console.error("[onboarding-restore] unexpected error", err);
         const errorMsg = err instanceof Error ? err.message : "Nežinoma klaida";
         setError(`Klaida: ${errorMsg}`);
       }
