@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { FailedGenerationScreen } from "@/components/FailedGenerationScreen";
 import { useOnboardingRestore } from "@/hooks/useOnboardingRestore";
 
 export const Route = createFileRoute("/auth/callback")({
@@ -34,16 +34,12 @@ function AuthCallbackPage() {
   }, [isRestoring, restoreError, generatedCourseId, restoredQuizData, navigate]);
 
   if (restoreError) {
+    console.error("[auth/callback] restore error:", restoreError);
     return (
-      <div className="flex min-h-screen items-center justify-center px-5">
-        <div className="surface-card w-full max-w-md p-8 text-center">
-          <h1 className="text-2xl font-semibold">Prisijungti nepavyko</h1>
-          <p className="mt-3 text-sm text-muted-foreground">{restoreError}</p>
-          <Button asChild className="mt-6 w-full" size="lg">
-            <Link to="/auth">Gauti naują nuorodą</Link>
-          </Button>
-        </div>
-      </div>
+      <FailedGenerationScreen
+        errorMessage={restoreError}
+        onRetry={() => void navigate({ to: "/onboarding" })}
+      />
     );
   }
 
