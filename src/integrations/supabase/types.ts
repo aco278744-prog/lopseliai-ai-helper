@@ -106,6 +106,33 @@ export type Database = {
           },
         ]
       }
+      pending_onboarding: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          email: string
+          handoff_token: string
+          id: string
+          onboarding: Json
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          handoff_token: string
+          id?: string
+          onboarding: Json
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          handoff_token?: string
+          id?: string
+          onboarding?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
