@@ -7,7 +7,6 @@ export const roleValues = [
   "deputy_education",
   "deputy_facility",
   "accountant",
-  "facility_manager",
   "teacher",
   "specialist",
 ] as const;
@@ -32,8 +31,6 @@ export const outputFormatValues = [
 
 export const timeBudgetValues = ["5_min", "15_min", "30_min"] as const;
 
-export const languageStyleValues = ["lt", "ru"] as const;
-
 export const onboardingSchema = z.object({
   role: z.enum(roleValues),
   age_groups: z.array(z.enum(ageGroupValues)).min(1),
@@ -41,7 +38,6 @@ export const onboardingSchema = z.object({
   ai_experience: z.enum(aiExperienceValues),
   output_format: z.enum(outputFormatValues),
   time_budget: z.enum(timeBudgetValues),
-  language_style: z.enum(languageStyleValues),
 });
 
 export type OnboardingData = z.infer<typeof onboardingSchema>;
@@ -68,11 +64,6 @@ export const roleOptions: Option<(typeof roleValues)[number]>[] = [
     value: "accountant",
     label: "Buhalterė",
     description: "Finansai, ataskaitos, buhalterija",
-  },
-  {
-    value: "facility_manager",
-    label: "Ūkvedė",
-    description: "Patalpos, sauga, aprūpinimas",
   },
   { value: "teacher", label: "Auklėtoja / mokytoja", description: "Darbas su grupe kasdien" },
   {
@@ -144,11 +135,6 @@ export const timeBudgetOptions: Option<(typeof timeBudgetValues)[number]>[] = [
   { value: "5_min", label: "5 minutės per dieną", description: "Trumpi mikro-žingsniai" },
   { value: "15_min", label: "15 minučių per dieną", description: "Subalansuotas tempas" },
   { value: "30_min", label: "30 minučių per dieną", description: "Greitas progresas" },
-];
-
-export const languageStyleOptions: Option<(typeof languageStyleValues)[number]>[] = [
-  { value: "lt", label: "Lietuvių kalba", description: "Kurso turinys lietuviškai" },
-  
 ];
 
 export function labelFor<T extends string>(options: Option<T>[], value: T): string {

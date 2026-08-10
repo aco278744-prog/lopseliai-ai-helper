@@ -17,7 +17,6 @@ import {
   aiExperienceOptions,
   outputFormatOptions,
   timeBudgetOptions,
-  languageStyleOptions,
   type OnboardingData,
   type Option,
 } from "@/lib/onboarding";
@@ -30,12 +29,12 @@ export const Route = createFileRoute("/onboarding")({
       {
         name: "description",
         content:
-          "8 klausimai apie jūsų vaidmenį darželyje, amžiaus grupes ir darbo iššūkius — pagal juos sukursime personalų DI kursą.",
+          "7 klausimai apie jūsų vaidmenį darželyje, amžiaus grupes ir darbo iššūkius — pagal juos sukursime personalų DI kursą.",
       },
       { property: "og:title", content: "Apklausa — sukurkite personalų DI kursą" },
       {
         property: "og:description",
-        content: "Atsakykite į 8 klausimus ir gaukite kursą, pritaikytą jūsų darbui darželyje.",
+        content: "Atsakykite į 7 klausimus ir gaukite kursą, pritaikytą jūsų darbui darželyje.",
       },
     ],
   }),
@@ -51,7 +50,6 @@ const stepsMeta = [
   { key: "ai_experience", title: "Kokia jūsų DI patirtis?", hint: "Pasirinkite vieną" },
   { key: "output_format", title: "Kokio formato medžiagos norite?", hint: "Pasirinkite vieną" },
   { key: "time_budget", title: "Kiek laiko galite skirti mokymuisi?", hint: "Pasirinkite vieną" },
-  { key: "language_style", title: "Kokia kalba rengti turinį?", hint: "Pasirinkite vieną" },
 ] as const;
 
 const TOTAL_STEPS = stepsMeta.length + 1;
@@ -167,10 +165,6 @@ function OnboardingPage() {
                 {step === 5 &&
                   renderSingle(timeBudgetOptions, draft.time_budget, (value) =>
                     pickSingle("time_budget", value),
-                  )}
-                {step === 6 &&
-                  renderSingle(languageStyleOptions, draft.language_style, (value) =>
-                    pickSingle("language_style", value),
                   )}
               </div>
 
