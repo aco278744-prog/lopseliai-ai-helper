@@ -107,6 +107,29 @@ export const mainPainOptions: Option<(typeof mainPainValues)[number]>[] = [
   },
 ];
 
+const painByRole: Record<
+  (typeof roleValues)[number],
+  (typeof mainPainValues)[number][] | null
+> = {
+  director: null,
+  deputy_education: ["parent_communications", "education_plans", "events_celebrations"],
+  deputy_facility: ["events_celebrations", "internal_orders", "reports_municipality"],
+  accountant: ["reports_municipality", "internal_orders"],
+  teacher: ["parent_communications", "education_plans", "events_celebrations"],
+  specialist: ["parent_communications", "education_plans"],
+};
+
+export function mainPainOptionsForRole(
+  role: (typeof roleValues)[number] | undefined,
+): Option<(typeof mainPainValues)[number]>[] {
+  if (!role) return mainPainOptions;
+  const allowed = painByRole[role];
+  if (!allowed) return mainPainOptions;
+  return allowed
+    .map((value) => mainPainOptions.find((option) => option.value === value))
+    .filter((option): option is Option<(typeof mainPainValues)[number]> => Boolean(option));
+}
+
 export const aiExperienceOptions: Option<(typeof aiExperienceValues)[number]>[] = [
   { value: "beginner", label: "Pradedančioji", description: "Dar beveik nenaudojau DI" },
   { value: "intermediate", label: "Vidutinė", description: "Kartais naudoju, bet nesistemingai" },
