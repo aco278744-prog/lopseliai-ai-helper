@@ -15,7 +15,7 @@ import {
   onboardingSchema,
   roleOptions,
   ageGroupOptions,
-  mainPainOptions,
+  mainPainOptionsForRole,
   aiExperienceOptions,
   outputFormatOptions,
   timeBudgetOptions,
@@ -158,7 +158,10 @@ function OnboardingPage() {
 
               <div className="mt-6 space-y-3 pb-[80px]">
                 {step === 0 &&
-                  renderSingle(roleOptions, draft.role, (value) => pickSingle("role", value))}
+                  renderSingle(roleOptions, draft.role, (value) => {
+                    setDraft(({ main_pain: _omit, ...rest }) => rest);
+                    pickSingle("role", value);
+                  })}
                 {step === 1 &&
                   ageGroupOptions.map((option) => (
                     <OptionButton
@@ -169,7 +172,7 @@ function OnboardingPage() {
                     />
                   ))}
                 {step === 2 &&
-                  renderSingle(mainPainOptions, draft.main_pain, (value) =>
+                  renderSingle(mainPainOptionsForRole(draft.role), draft.main_pain, (value) =>
                     pickSingle("main_pain", value),
                   )}
                 {step === 3 &&
