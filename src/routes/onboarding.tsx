@@ -158,7 +158,10 @@ function OnboardingPage() {
 
               <div className="mt-6 space-y-3 pb-[80px]">
                 {step === 0 &&
-                  renderSingle(roleOptions, draft.role, (value) => pickSingle("role", value))}
+                  renderSingle(roleOptions, draft.role, (value) => {
+                    setDraft((current) => ({ ...current, main_pain: undefined }));
+                    pickSingle("role", value);
+                  })}
                 {step === 1 &&
                   ageGroupOptions.map((option) => (
                     <OptionButton
