@@ -159,7 +159,7 @@ function OnboardingPage() {
               <div className="mt-6 space-y-3 pb-[80px]">
                 {step === 0 &&
                   renderSingle(roleOptions, draft.role, (value) => {
-                    setDraft((current) => ({ ...current, main_pain: undefined }));
+                    setDraft(({ main_pain: _omit, ...rest }) => rest);
                     pickSingle("role", value);
                   })}
                 {step === 1 &&
