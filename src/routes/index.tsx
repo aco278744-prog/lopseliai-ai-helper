@@ -134,7 +134,7 @@ function LandingPage() {
       <section className="mx-auto max-w-3xl px-5 py-20 text-center md:py-28">
         <h2 className="text-3xl font-semibold sm:text-4xl">Pradėkite šiandien</h2>
         <p className="mt-4 text-muted-foreground">
-          Kursas kuriamas pagal jūsų atsakymus — lietuvių arba rusų kalba.
+          Kursas pritaikomas pagal jūsų atsakymus — lietuvių kalba.
         </p>
         <Button asChild size="lg" className="mt-8 h-12 px-8 text-base">
           <Link to="/onboarding">
