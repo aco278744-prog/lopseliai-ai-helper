@@ -1,8 +1,199 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { onboardingSchema } from "@/lib/onboarding";
 import { buildMockCourse, buildCourseKey } from "@/lib/course-generator";
-import { courseContentSchema } from "@/lib/course-types";
+import { courseContentSchema, type CourseContent } from "@/lib/course-types";
+
+const anthropicCourseSchema = z
+  .object({
+    title: z.string(),
+    subtitle: z.string(),
+    modules: z.array(
+      z.object({
+        id: z.number(),
+        title: z.string(),
+        description: z.string(),
+        lessons: z.array(
+          z.object({
+            id: z.string(),
+            title: z.string(),
+            duration_min: z.number().min(5).max(30),
+            goal: z.string(),
+            steps: z.array(z.string()),
+            prompt_template: z.object({
+              title: z.string(),
+              text: z.string(),
+            }),
+          }),
+        ),
+      }),
+    ),
+  })
+  .strict();
+
+async function generateCourseWithAnthropicAPI(quizData: any) {
+  const apiKey = process.env["ANTHROPIC_API_KEY"];
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
+
+  // Lazy-load the Anthropic SDK inside the server handler to keep the
+  // createServerFn module edge-safe and out of the client bundle.
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
+
+  const anthropic = new Anthropic({ apiKey });
+  const profileJson = JSON.stringify({
+    role: quizData.role,
+    main_pain: quizData.main_pain,
+    age_groups: quizData.age_groups || [],
+    ai_experience: quizData.ai_experience || "beginner",
+    output_format: quizData.output_format || "ready_prompts",
+    time_budget: quizData.time_budget || "15_min",
+  });
+
+  const systemPrompt = `Tu esi ekspertas, kuris kuria personalizuotus mikro-mokymosi kursus Lietuvos ikimokyklinio ugdymo įstaigų (lopšelių-darželių) darbuotojams.
+
+Griežtos taisyklės:
+- NIEKADA "personalus" → "personalizuotas" arba "individualus"
+- NIEKADA "skausmo taškas" → "iššūkis", "problema" arba "didžiausias iššūkis"
+- Užklausose: "Parašyk", "Paruošk", "Pateik", "Sukurk" (ne "Parenk")
+- Derink giminę ir linksnius pagal vaidmenį
+- Venk kanceliarinio stiliaus
+
+Sugeneruok JSON be „source" ir „model" laukų (jie bus pridėti serveryje):
+{
+  "title": "...",
+  "subtitle": "...",
+  "modules": [
+    {
+      "id": 1,
+      "title": "...",
+      "description": "...",
+      "lessons": [
+        {
+          "id": "1.1",
+          "title": "...",
+          "duration_min": 5-9,
+          "goal": "...",
+          "steps": ["1. ...", "2. ...", "3. ..."],
+          "prompt_template": {
+            "title": "...",
+            "text": "..."
+          }
+        }
+      ]
+    }
+  ]
+}
+
+Visada įtrauk pamoką apie duomenų saugą (GDPR) ir kokybės patikrą.
+Atsakyk TIK validžiu JSON. Jokio markdown.`;
+
+  let lastError: Error | null = null;
+
+  try {
+    const message = await anthropic.messages.create(
+      {
+        model: "claude-3-5-haiku-20241022",
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: [
+          {
+            role: "user",
+            content: `Vartotojo duomenys:\n${profileJson}\n\nSugeneruok personalizuotą kursą.`,
+          },
+        ],
+      },
+      { timeout: 12_000 },
+    );
+
+    const text = message.content[0].type === "text" ? message.content[0].text : "";
+    const cleanJson = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const validated = anthropicCourseSchema.parse(JSON.parse(cleanJson));
+
+    return { ...validated, source: "anthropic", model: "claude-3-5-haiku-20241022" };
+  } catch (error) {
+    lastError = error instanceof Error ? error : new Error(String(error));
+    console.error("First attempt failed:", lastError.message);
+
+    try {
+      const zodMsg =
+        lastError instanceof z.ZodError
+          ? lastError.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join("; ")
+          : lastError.message;
+
+      const retry = await anthropic.messages.create(
+        {
+          model: "claude-3-5-haiku-20241022",
+          max_tokens: 4096,
+          system: systemPrompt,
+          messages: [
+            {
+              role: "user",
+              content: `Vartotojo duomenys:\n${profileJson}\n\nSugeneruok personalizuotą kursą.`,
+            },
+            { role: "assistant", content: "Supratau." },
+            {
+              role: "user",
+              content: `Klaida: ${zodMsg}. Ištaisyk ir grąžink TIK validų JSON.`,
+            },
+          ],
+        },
+        { timeout: 12_000 },
+      );
+
+      const retryText = retry.content[0].type === "text" ? retry.content[0].text : "";
+      const cleanRetryJson = retryText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      const retryValidated = anthropicCourseSchema.parse(JSON.parse(cleanRetryJson));
+
+      return { ...retryValidated, source: "anthropic", model: "claude-3-5-haiku-20241022" };
+    } catch (retryError) {
+      console.error("Retry failed:", retryError);
+      throw new Error("API failed twice. Fallback to mock.");
+    }
+  }
+}
+
+function mapAnthropicToCourseContent(result: z.infer<typeof anthropicCourseSchema>): CourseContent {
+  return {
+    title: result.title,
+    subtitle: result.subtitle,
+    language: "lt",
+    modules: result.modules.map((m) => ({
+      id: String(m.id),
+      title: m.title,
+      description: m.description,
+      lessons: m.lessons.map((l) => ({
+        id: l.id,
+        title: l.title,
+        summary: l.goal,
+        minutes: l.duration_min,
+        steps: l.steps,
+        prompts: [
+          {
+            title: l.prompt_template.title,
+            body: l.prompt_template.text,
+          },
+        ],
+      })),
+    })),
+  };
+}
+
+async function buildCourseContent(onboarding: any): Promise<CourseContent> {
+  const aiProvider = process.env["AI_PROVIDER"] || "mock";
+
+  try {
+    if (aiProvider === "anthropic") {
+      const generated = await generateCourseWithAnthropicAPI(onboarding);
+      return mapAnthropicToCourseContent(generated);
+    }
+    return buildMockCourse(onboarding);
+  } catch (error) {
+    console.error("Generation error:", error);
+    console.warn("Fallback to mock");
+    return buildMockCourse(onboarding);
+  }
+}
 
 export const savePendingOnboarding = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => {
@@ -86,7 +277,9 @@ export const generateCourse = createServerFn({ method: "POST" })
         .maybeSingle();
 
       const parsedCache = cached ? courseContentSchema.safeParse(cached.content) : null;
-      const content = parsedCache?.success ? parsedCache.data : buildMockCourse(data.onboarding);
+      const content = parsedCache?.success
+        ? parsedCache.data
+        : await buildCourseContent(data.onboarding);
 
       if (!parsedCache?.success) {
         const { error: cacheError } = await supabase
@@ -144,7 +337,7 @@ export const retryCourse = createServerFn({ method: "POST" })
       .update({ status: "generating", error_message: null })
       .eq("id", course.id);
 
-    const content = buildMockCourse(parsed.data);
+    const content = await buildCourseContent(parsed.data);
 
     const { error: updateError } = await supabase
       .from("courses")
