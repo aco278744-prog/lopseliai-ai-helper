@@ -106,7 +106,7 @@ Atsakyk TIK validžiu JSON. Jokio markdown.`;
       { timeout: 12_000 },
     );
 
-    const text = message.content[0].type === "text" ? message.content[0].text : "";
+    const text = message.content[0]?.type === "text" ? message.content[0].text : "";
     const cleanJson = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     const validated = anthropicCourseSchema.parse(JSON.parse(cleanJson));
 
@@ -141,7 +141,7 @@ Atsakyk TIK validžiu JSON. Jokio markdown.`;
         { timeout: 12_000 },
       );
 
-      const retryText = retry.content[0].type === "text" ? retry.content[0].text : "";
+      const retryText = retry.content[0]?.type === "text" ? retry.content[0].text : "";
       const cleanRetryJson = retryText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       const retryValidated = anthropicCourseSchema.parse(JSON.parse(cleanRetryJson));
 
